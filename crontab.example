@@ -1,0 +1,9 @@
+# Example crontab entry for daily data updates
+# Edit your crontab with: crontab -e
+# This will run the update script every day at 9:00 AM
+
+# Update FRED economic data daily at 9:00 AM
+0 9 * * * cd /path/to/your/project && /path/to/your/venv/bin/python update_data.py >> /path/to/logs/fred_update.log 2>&1
+
+# Alternative: Run at 9:00 AM on weekdays only
+0 9 * * 1-5 cd /path/to/your/project && /path/to/your/venv/bin/python update_data.py >> /path/to/logs/fred_update.log 2>&1
