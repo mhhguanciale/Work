@@ -13,6 +13,11 @@ FRED_SERIES = {
     "unemployment": "UNRATE",  # Unemployment Rate
     "gdp": "GDP",              # Gross Domestic Product
     "gdp_growth": "A191RL1Q225SBEA",  # Real GDP Growth Rate
+    # Housing Market Metrics
+    "mortgage_rate": "MORTGAGE30US",  # 30-Year Fixed Rate Mortgage Average
+    "median_home_price": "MSPUS",  # Median Sales Price of Houses Sold
+    "home_price_index": "CSUSHPISA",  # S&P/Case-Shiller U.S. National Home Price Index
+    "housing_starts": "HOUST",  # Housing Starts: Total New Privately Owned
 }
 
 # Data cache settings

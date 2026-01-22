@@ -105,6 +105,38 @@ class FREDDataFetcher:
         """
         return self.get_series(FRED_SERIES["gdp_growth"], use_cache=use_cache)
 
+    def get_mortgage_rate_data(self, use_cache: bool = True) -> pd.Series:
+        """Get 30-year fixed mortgage rate data.
+
+        Returns:
+            Pandas Series with mortgage rate (%)
+        """
+        return self.get_series(FRED_SERIES["mortgage_rate"], use_cache=use_cache)
+
+    def get_median_home_price_data(self, use_cache: bool = True) -> pd.Series:
+        """Get median sales price of houses sold data.
+
+        Returns:
+            Pandas Series with median home price (dollars)
+        """
+        return self.get_series(FRED_SERIES["median_home_price"], use_cache=use_cache)
+
+    def get_home_price_index_data(self, use_cache: bool = True) -> pd.Series:
+        """Get Case-Shiller home price index data.
+
+        Returns:
+            Pandas Series with home price index
+        """
+        return self.get_series(FRED_SERIES["home_price_index"], use_cache=use_cache)
+
+    def get_housing_starts_data(self, use_cache: bool = True) -> pd.Series:
+        """Get housing starts data.
+
+        Returns:
+            Pandas Series with housing starts (thousands of units)
+        """
+        return self.get_series(FRED_SERIES["housing_starts"], use_cache=use_cache)
+
     def get_all_data(self, use_cache: bool = True) -> Dict[str, pd.Series]:
         """Get all configured economic indicators.
 
@@ -115,6 +147,10 @@ class FREDDataFetcher:
             "unemployment": self.get_unemployment_data(use_cache=use_cache),
             "gdp": self.get_gdp_data(use_cache=use_cache),
             "gdp_growth": self.get_gdp_growth_data(use_cache=use_cache),
+            "mortgage_rate": self.get_mortgage_rate_data(use_cache=use_cache),
+            "median_home_price": self.get_median_home_price_data(use_cache=use_cache),
+            "home_price_index": self.get_home_price_index_data(use_cache=use_cache),
+            "housing_starts": self.get_housing_starts_data(use_cache=use_cache),
         }
 
     def clear_cache(self):

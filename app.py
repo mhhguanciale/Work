@@ -158,6 +158,67 @@ def display_metric_cards(data: dict):
         st.caption(f"As of {gdp_growth.index[-1].strftime('%B %Y')}")
 
 
+def display_housing_metric_cards(data: dict):
+    """Display housing market metrics as cards."""
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        mortgage_rate = data["mortgage_rate"]
+        current_val = mortgage_rate.iloc[-1]
+        prev_val = mortgage_rate.iloc[-2] if len(mortgage_rate) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="30-Year Mortgage Rate",
+            value=f"{current_val:.2f}%",
+            delta=f"{delta:.2f}%",
+            delta_color="inverse",
+        )
+        st.caption(f"As of {mortgage_rate.index[-1].strftime('%B %Y')}")
+
+    with col2:
+        median_price = data["median_home_price"]
+        current_val = median_price.iloc[-1]
+        prev_val = median_price.iloc[-2] if len(median_price) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Median Home Price",
+            value=f"${current_val:,.0f}",
+            delta=f"{delta_pct:+.1f}%",
+        )
+        st.caption(f"As of {median_price.index[-1].strftime('%B %Y')}")
+
+    with col3:
+        home_price_idx = data["home_price_index"]
+        current_val = home_price_idx.iloc[-1]
+        prev_val = home_price_idx.iloc[-2] if len(home_price_idx) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Case-Shiller Index",
+            value=f"{current_val:.1f}",
+            delta=f"{delta_pct:+.1f}%",
+        )
+        st.caption(f"As of {home_price_idx.index[-1].strftime('%B %Y')}")
+
+    with col4:
+        housing_starts = data["housing_starts"]
+        current_val = housing_starts.iloc[-1]
+        prev_val = housing_starts.iloc[-2] if len(housing_starts) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Housing Starts",
+            value=f"{current_val:,.0f}K",
+            delta=f"{delta_pct:+.1f}%",
+        )
+        st.caption(f"As of {housing_starts.index[-1].strftime('%B %Y')}")
+
+
 def main():
     """Main dashboard application."""
     # Header
@@ -190,9 +251,17 @@ def main():
         st.markdown(
             """
             This dashboard displays key U.S. economic indicators:
+
+            **Economic Indicators:**
             - **Unemployment Rate**: Percentage of unemployed in labor force
             - **GDP**: Gross Domestic Product in billions of dollars
             - **GDP Growth**: Real GDP growth rate (year-over-year)
+
+            **Housing Market:**
+            - **Mortgage Rate**: 30-year fixed mortgage rate
+            - **Median Home Price**: Median sales price of houses sold
+            - **Case-Shiller Index**: National home price index
+            - **Housing Starts**: New privately owned housing units started
 
             **Data Source**: [FRED](https://fred.stlouisfed.org/)
             """
@@ -252,6 +321,61 @@ def main():
         )
         st.plotly_chart(gdp_growth_chart, use_container_width=True)
 
+    st.markdown("---")
+
+    # Housing Market Section
+    st.subheader("Housing Market & Mortgage Metrics")
+    display_housing_metric_cards(data)
+
+    st.markdown("---")
+
+    # Housing charts
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("30-Year Mortgage Rate")
+        mortgage_chart = create_single_chart(
+            filtered_data["mortgage_rate"],
+            "30-Year Fixed Mortgage Rate Over Time",
+            "Rate (%)",
+            "#AB63FA",
+        )
+        st.plotly_chart(mortgage_chart, use_container_width=True)
+
+    with col2:
+        st.subheader("Median Home Price")
+        home_price_chart = create_single_chart(
+            filtered_data["median_home_price"],
+            "Median Sales Price of Houses Over Time",
+            "Price ($)",
+            "#FFA15A",
+        )
+        st.plotly_chart(home_price_chart, use_container_width=True)
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.subheader("Case-Shiller Home Price Index")
+        price_index_chart = create_single_chart(
+            filtered_data["home_price_index"],
+            "S&P/Case-Shiller Home Price Index",
+            "Index",
+            "#19D3F3",
+        )
+        st.plotly_chart(price_index_chart, use_container_width=True)
+
+    with col4:
+        st.subheader("Housing Starts")
+        housing_starts_chart = create_single_chart(
+            filtered_data["housing_starts"],
+            "Housing Starts Over Time",
+            "Thousands of Units",
+            "#FF6692",
+        )
+        st.plotly_chart(housing_starts_chart, use_container_width=True)
+
+    st.markdown("---")
+
     # Data table (expandable)
     with st.expander("📊 View Raw Data"):
         st.subheader("Recent Data Points")
@@ -262,6 +386,10 @@ def main():
                 "Unemployment Rate (%)": filtered_data["unemployment"],
                 "GDP (Billions $)": filtered_data["gdp"],
                 "GDP Growth Rate (%)": filtered_data["gdp_growth"],
+                "30-Year Mortgage Rate (%)": filtered_data["mortgage_rate"],
+                "Median Home Price ($)": filtered_data["median_home_price"],
+                "Case-Shiller Index": filtered_data["home_price_index"],
+                "Housing Starts (K)": filtered_data["housing_starts"],
             }
         )
 
