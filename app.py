@@ -79,8 +79,8 @@ def create_dual_axis_chart(unemployment: pd.Series, gdp: pd.Series, title: str):
     )
 
     # Set y-axes titles
-    fig.update_yaxis(title_text="Unemployment Rate (%)", secondary_y=False)
-    fig.update_yaxis(title_text="GDP (Billions of $)", secondary_y=True)
+    fig.update_yaxes(title_text="Unemployment Rate (%)", secondary_y=False)
+    fig.update_yaxes(title_text="GDP (Billions of $)", secondary_y=True)
 
     return fig
 
