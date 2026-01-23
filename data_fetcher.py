@@ -306,6 +306,71 @@ class FREDDataFetcher:
         """
         return self.get_series(FRED_SERIES["total_credit_gap"], use_cache=use_cache)
 
+    # Healthcare Indicators
+    def get_healthcare_pce_data(self, use_cache: bool = True) -> pd.Series:
+        """Get personal consumption expenditures for health care.
+
+        Returns:
+            Pandas Series with healthcare PCE (billions of dollars)
+        """
+        return self.get_series(FRED_SERIES["healthcare_pce"], use_cache=use_cache)
+
+    def get_healthcare_gdp_pct_data(self, use_cache: bool = True) -> pd.Series:
+        """Get health care expenditures as percent of GDP.
+
+        Returns:
+            Pandas Series with healthcare expenditures as % of GDP
+        """
+        return self.get_series(FRED_SERIES["healthcare_gdp_pct"], use_cache=use_cache)
+
+    def get_cpi_medical_data(self, use_cache: bool = True) -> pd.Series:
+        """Get Consumer Price Index for medical care.
+
+        Returns:
+            Pandas Series with CPI medical care index
+        """
+        return self.get_series(FRED_SERIES["cpi_medical"], use_cache=use_cache)
+
+    def get_cpi_hospital_data(self, use_cache: bool = True) -> pd.Series:
+        """Get Consumer Price Index for hospital services.
+
+        Returns:
+            Pandas Series with CPI hospital services index
+        """
+        return self.get_series(FRED_SERIES["cpi_hospital"], use_cache=use_cache)
+
+    def get_cpi_prescription_data(self, use_cache: bool = True) -> pd.Series:
+        """Get Consumer Price Index for prescription drugs.
+
+        Returns:
+            Pandas Series with CPI prescription drugs index
+        """
+        return self.get_series(FRED_SERIES["cpi_prescription"], use_cache=use_cache)
+
+    def get_healthcare_employment_data(self, use_cache: bool = True) -> pd.Series:
+        """Get healthcare and social assistance employment.
+
+        Returns:
+            Pandas Series with healthcare employment (thousands)
+        """
+        return self.get_series(FRED_SERIES["healthcare_employment"], use_cache=use_cache)
+
+    def get_healthcare_wages_data(self, use_cache: bool = True) -> pd.Series:
+        """Get average hourly earnings in healthcare sector.
+
+        Returns:
+            Pandas Series with healthcare wages (dollars per hour)
+        """
+        return self.get_series(FRED_SERIES["healthcare_wages"], use_cache=use_cache)
+
+    def get_uninsured_number_data(self, use_cache: bool = True) -> pd.Series:
+        """Get number of persons without health insurance.
+
+        Returns:
+            Pandas Series with uninsured persons (millions)
+        """
+        return self.get_series(FRED_SERIES["uninsured_number"], use_cache=use_cache)
+
     def get_all_data(self, use_cache: bool = True) -> Dict[str, pd.Series]:
         """Get all configured economic indicators.
 
@@ -342,6 +407,15 @@ class FREDDataFetcher:
             "household_debt": self.get_household_debt_data(use_cache=use_cache),
             "federal_debt_gdp": self.get_federal_debt_gdp_data(use_cache=use_cache),
             "total_credit_gap": self.get_total_credit_gap_data(use_cache=use_cache),
+            # Healthcare Indicators
+            "healthcare_pce": self.get_healthcare_pce_data(use_cache=use_cache),
+            "healthcare_gdp_pct": self.get_healthcare_gdp_pct_data(use_cache=use_cache),
+            "cpi_medical": self.get_cpi_medical_data(use_cache=use_cache),
+            "cpi_hospital": self.get_cpi_hospital_data(use_cache=use_cache),
+            "cpi_prescription": self.get_cpi_prescription_data(use_cache=use_cache),
+            "healthcare_employment": self.get_healthcare_employment_data(use_cache=use_cache),
+            "healthcare_wages": self.get_healthcare_wages_data(use_cache=use_cache),
+            "uninsured_number": self.get_uninsured_number_data(use_cache=use_cache),
         }
 
     def clear_cache(self):

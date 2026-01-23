@@ -476,6 +476,66 @@ def display_credit_metric_cards(data: dict):
         st.caption(f"As of {federal_debt.index[-1].strftime('%B %Y')}")
 
 
+def display_healthcare_metric_cards(data: dict):
+    """Display healthcare metrics as cards."""
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        healthcare_gdp = data["healthcare_gdp_pct"]
+        current_val = healthcare_gdp.iloc[-1]
+        prev_val = healthcare_gdp.iloc[-2] if len(healthcare_gdp) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="Healthcare % of GDP",
+            value=f"{current_val:.1f}%",
+            delta=f"{delta:+.2f}%",
+        )
+        st.caption(f"As of {healthcare_gdp.index[-1].strftime('%B %Y')}")
+
+    with col2:
+        healthcare_pce = data["healthcare_pce"]
+        current_val = healthcare_pce.iloc[-1]
+        prev_val = healthcare_pce.iloc[-2] if len(healthcare_pce) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Healthcare Spending",
+            value=f"${current_val:,.0f}B",
+            delta=f"{delta_pct:+.1f}%",
+        )
+        st.caption(f"As of {healthcare_pce.index[-1].strftime('%B %Y')}")
+
+    with col3:
+        healthcare_employment = data["healthcare_employment"]
+        current_val = healthcare_employment.iloc[-1]
+        prev_val = healthcare_employment.iloc[-2] if len(healthcare_employment) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Healthcare Employment",
+            value=f"{current_val:,.0f}K",
+            delta=f"{delta_pct:+.1f}%",
+        )
+        st.caption(f"As of {healthcare_employment.index[-1].strftime('%B %Y')}")
+
+    with col4:
+        uninsured = data["uninsured_number"]
+        current_val = uninsured.iloc[-1]
+        prev_val = uninsured.iloc[-2] if len(uninsured) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="Uninsured Population",
+            value=f"{current_val:.1f}M",
+            delta=f"{delta:+.1f}M",
+            delta_color="inverse",  # Lower uninsured is better
+        )
+        st.caption(f"As of {uninsured.index[-1].strftime('%B %Y')}")
+
+
 def main():
     """Main dashboard application."""
     # Header
@@ -535,6 +595,14 @@ def main():
             - **Borrowing Rates**: Consumer rates (credit card, auto, personal, mortgage)
             - **Debt Levels**: Corporate and household debt securities
             - **Leverage Metrics**: Federal debt/GDP ratio, credit gap
+
+            **Healthcare Indicators:**
+            - **Healthcare Spending**: Personal health care expenditures (PCE)
+            - **Healthcare % of GDP**: Health expenditures as percent of GDP
+            - **Healthcare Costs**: CPI for medical care, hospital services, prescription drugs
+            - **Healthcare Employment**: Healthcare and social assistance sector jobs
+            - **Healthcare Wages**: Average hourly earnings in healthcare
+            - **Health Insurance**: Number of persons without health insurance
 
             **Note**: Charts with dual Y-axes show both level data and year-over-year growth trends.
 
@@ -865,6 +933,89 @@ def main():
 
     st.markdown("---")
 
+    # Healthcare Indicators Section
+    st.subheader("Healthcare Indicators")
+    display_healthcare_metric_cards(data)
+
+    st.markdown("---")
+
+    # Healthcare spending and costs
+    st.subheader("Healthcare Spending & Costs")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Healthcare Expenditures**")
+        healthcare_pce_chart = create_level_with_growth_chart(
+            filtered_data["healthcare_pce"],
+            "Personal Health Care Expenditures",
+            "Billions of $",
+            "#636EFA",
+            "Healthcare PCE"
+        )
+        st.plotly_chart(healthcare_pce_chart, use_container_width=True)
+
+        healthcare_gdp_chart = create_single_chart(
+            filtered_data["healthcare_gdp_pct"],
+            "Healthcare Expenditures as % of GDP",
+            "Percent of GDP (%)",
+            "#AB63FA"
+        )
+        st.plotly_chart(healthcare_gdp_chart, use_container_width=True)
+
+    with col2:
+        st.markdown("**Healthcare Cost Inflation**")
+        healthcare_cpi_chart = create_multi_series_chart(
+            {
+                "Medical Care": filtered_data["cpi_medical"],
+                "Hospital Services": filtered_data["cpi_hospital"],
+                "Prescription Drugs": filtered_data["cpi_prescription"],
+            },
+            "Healthcare Price Indices (CPI)",
+            "Index (1982-84=100)",
+            colors=["#636EFA", "#EF553B", "#00CC96"]
+        )
+        st.plotly_chart(healthcare_cpi_chart, use_container_width=True)
+        st.caption("Tracks inflation in different healthcare segments")
+
+    st.markdown("---")
+
+    # Healthcare employment and insurance
+    st.subheader("Healthcare Employment & Coverage")
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown("**Healthcare Sector Employment**")
+        employment_chart = create_level_with_growth_chart(
+            filtered_data["healthcare_employment"],
+            "Healthcare & Social Assistance Employment",
+            "Thousands of Employees",
+            "#00CC96",
+            "Healthcare Jobs"
+        )
+        st.plotly_chart(employment_chart, use_container_width=True)
+
+        wages_chart = create_level_with_growth_chart(
+            filtered_data["healthcare_wages"],
+            "Average Hourly Earnings in Healthcare",
+            "Dollars per Hour",
+            "#FFA15A",
+            "Healthcare Wages"
+        )
+        st.plotly_chart(wages_chart, use_container_width=True)
+
+    with col4:
+        st.markdown("**Health Insurance Coverage**")
+        uninsured_chart = create_single_chart(
+            filtered_data["uninsured_number"],
+            "Number of Persons Without Health Insurance",
+            "Millions of Persons",
+            "#EF553B"
+        )
+        st.plotly_chart(uninsured_chart, use_container_width=True)
+        st.caption("Lower values indicate better insurance coverage")
+
+    st.markdown("---")
+
     # Data table (expandable)
     with st.expander("📊 View Raw Data"):
         st.subheader("Recent Data Points")
@@ -901,6 +1052,15 @@ def main():
                 "Household Debt (Billions $)": filtered_data["household_debt"],
                 "Federal Debt/GDP (%)": filtered_data["federal_debt_gdp"],
                 "Credit Gap (% GDP)": filtered_data["total_credit_gap"],
+                # Healthcare Indicators
+                "Healthcare PCE (Billions $)": filtered_data["healthcare_pce"],
+                "Healthcare % of GDP": filtered_data["healthcare_gdp_pct"],
+                "CPI Medical Care": filtered_data["cpi_medical"],
+                "CPI Hospital Services": filtered_data["cpi_hospital"],
+                "CPI Prescription Drugs": filtered_data["cpi_prescription"],
+                "Healthcare Employment (K)": filtered_data["healthcare_employment"],
+                "Healthcare Wages ($/hr)": filtered_data["healthcare_wages"],
+                "Uninsured (Millions)": filtered_data["uninsured_number"],
             }
         )
 
