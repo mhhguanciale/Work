@@ -26,6 +26,24 @@ FRED_SERIES = {
     "retail_sales": "RSXFS",  # Advance Retail Sales: Retail Trade (Millions)
     "consumer_credit": "TOTALSL",  # Total Consumer Credit Outstanding (Billions)
     "disposable_income": "DSPIC96",  # Real Disposable Personal Income (Billions, Chained 2017 $)
+    # Credit Market Indicators
+    # Credit Spreads
+    "baa_spread": "BAA10Y",  # Moody's Baa Corporate Bond Spread over 10-Year Treasury
+    "aaa_spread": "AAA10Y",  # Moody's Aaa Corporate Bond Spread over 10-Year Treasury
+    "ig_spread": "BAMLC0A0CM",  # ICE BofA US Corporate Index Option-Adjusted Spread
+    "hy_spread": "BAMLH0A0HYM2",  # ICE BofA US High Yield Index Option-Adjusted Spread
+    "yield_curve_10y2y": "T10Y2Y",  # 10-Year minus 2-Year Treasury Yield Spread
+    "yield_curve_10y3m": "T10Y3M",  # 10-Year minus 3-Month Treasury Yield Spread
+    # Borrowing Rates
+    "treasury_10y": "DGS10",  # 10-Year Treasury Constant Maturity Rate
+    "personal_loan_rate": "TERMCBPER24NS",  # 24-Month Personal Loan Rate at Commercial Banks
+    "auto_loan_rate": "TERMCBCCINTNS",  # 48-Month New Auto Loan Rate at Commercial Banks
+    "credit_card_rate": "TERMCBCCALLNS",  # Credit Card Interest Rate (All Accounts)
+    # Leverage & Debt Metrics
+    "corporate_debt": "BCNSDODNS",  # Nonfinancial Corporate Business Debt Securities
+    "household_debt": "HHDTSDODNS",  # Households and Nonprofit Organizations Debt
+    "federal_debt_gdp": "GFDEGDQ188S",  # Federal Debt: Total Public Debt as Percent of GDP
+    "total_credit_gap": "QUSCAM",  # Credit to Non-Financial Sector Gap (% of GDP)
 }
 
 # Data cache settings

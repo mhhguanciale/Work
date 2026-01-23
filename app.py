@@ -205,6 +205,50 @@ def create_single_chart(series: pd.Series, title: str, yaxis_title: str, color: 
     return fig
 
 
+def create_multi_series_chart(
+    series_dict: dict,
+    title: str,
+    yaxis_title: str,
+    colors: list = None
+):
+    """Create a chart with multiple data series.
+
+    Args:
+        series_dict: Dictionary mapping series names to pd.Series objects
+        title: Chart title
+        yaxis_title: Y-axis title
+        colors: Optional list of colors for each series
+    """
+    fig = go.Figure()
+
+    default_colors = ["#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A", "#19D3F3"]
+    if colors is None:
+        colors = default_colors
+
+    for i, (name, series) in enumerate(series_dict.items()):
+        color = colors[i % len(colors)]
+        fig.add_trace(
+            go.Scatter(
+                x=series.index,
+                y=series.values,
+                name=name,
+                line=dict(color=color, width=2),
+                mode="lines",
+            )
+        )
+
+    fig.update_layout(
+        title=title,
+        yaxis_title=yaxis_title,
+        hovermode="x unified",
+        height=500,
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
+
+    return fig
+
+
 def display_metric_cards(data: dict):
     """Display current values as metric cards."""
     col1, col2, col3 = st.columns(3)
@@ -372,6 +416,66 @@ def display_consumer_metric_cards(data: dict):
         st.caption(f"As of {initial_claims.index[-1].strftime('%B %Y')}")
 
 
+def display_credit_metric_cards(data: dict):
+    """Display credit market metrics as cards."""
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        hy_spread = data["hy_spread"]
+        current_val = hy_spread.iloc[-1]
+        prev_val = hy_spread.iloc[-2] if len(hy_spread) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="High Yield Spread",
+            value=f"{current_val:.2f}%",
+            delta=f"{delta:+.2f}%",
+            delta_color="inverse",  # Higher spread is worse
+        )
+        st.caption(f"As of {hy_spread.index[-1].strftime('%B %Y')}")
+
+    with col2:
+        baa_spread = data["baa_spread"]
+        current_val = baa_spread.iloc[-1]
+        prev_val = baa_spread.iloc[-2] if len(baa_spread) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="Baa Spread",
+            value=f"{current_val:.2f}%",
+            delta=f"{delta:+.2f}%",
+            delta_color="inverse",
+        )
+        st.caption(f"As of {baa_spread.index[-1].strftime('%B %Y')}")
+
+    with col3:
+        yield_curve = data["yield_curve_10y2y"]
+        current_val = yield_curve.iloc[-1]
+        prev_val = yield_curve.iloc[-2] if len(yield_curve) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="10Y-2Y Yield Curve",
+            value=f"{current_val:.2f}%",
+            delta=f"{delta:+.2f}%",
+        )
+        st.caption(f"As of {yield_curve.index[-1].strftime('%B %Y')}")
+
+    with col4:
+        federal_debt = data["federal_debt_gdp"]
+        current_val = federal_debt.iloc[-1]
+        prev_val = federal_debt.iloc[-2] if len(federal_debt) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="Federal Debt/GDP",
+            value=f"{current_val:.1f}%",
+            delta=f"{delta:+.1f}%",
+            delta_color="inverse",
+        )
+        st.caption(f"As of {federal_debt.index[-1].strftime('%B %Y')}")
+
+
 def main():
     """Main dashboard application."""
     # Header
@@ -424,6 +528,13 @@ def main():
             - **Consumer Credit**: Total consumer credit outstanding
             - **Disposable Income**: Real disposable personal income
             - **Initial Claims**: Weekly initial unemployment insurance claims
+
+            **Credit Market Indicators:**
+            - **Credit Spreads**: Corporate bond spreads (Aaa, Baa, IG, High Yield)
+            - **Yield Curve**: Treasury yield spreads (10Y-2Y, 10Y-3M)
+            - **Borrowing Rates**: Consumer rates (credit card, auto, personal, mortgage)
+            - **Debt Levels**: Corporate and household debt securities
+            - **Leverage Metrics**: Federal debt/GDP ratio, credit gap
 
             **Note**: Charts with dual Y-axes show both level data and year-over-year growth trends.
 
@@ -632,6 +743,128 @@ def main():
 
     st.markdown("---")
 
+    # Credit Market Indicators Section
+    st.subheader("Credit Market Indicators")
+    display_credit_metric_cards(data)
+
+    st.markdown("---")
+
+    # Credit Spreads
+    st.subheader("Credit Spreads Analysis")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Corporate Credit Spreads**")
+        spreads_chart = create_multi_series_chart(
+            {
+                "High Yield": filtered_data["hy_spread"],
+                "Investment Grade": filtered_data["ig_spread"],
+                "Baa": filtered_data["baa_spread"],
+                "Aaa": filtered_data["aaa_spread"],
+            },
+            "Corporate Bond Spreads Over Treasuries",
+            "Spread (percentage points)",
+            colors=["#EF553B", "#FFA15A", "#636EFA", "#00CC96"]
+        )
+        st.plotly_chart(spreads_chart, use_container_width=True)
+        st.caption("Higher spreads indicate greater credit risk and investor concern")
+
+    with col2:
+        st.markdown("**Treasury Yield Curve**")
+        yield_curve_chart = create_multi_series_chart(
+            {
+                "10Y-2Y Spread": filtered_data["yield_curve_10y2y"],
+                "10Y-3M Spread": filtered_data["yield_curve_10y3m"],
+            },
+            "Treasury Yield Curve Spreads",
+            "Spread (percentage points)",
+            colors=["#636EFA", "#AB63FA"]
+        )
+        st.plotly_chart(yield_curve_chart, use_container_width=True)
+        st.caption("Inverted yield curve (negative spread) may signal recession risk")
+
+    st.markdown("---")
+
+    # Borrowing Rates
+    st.subheader("Consumer Borrowing Rates")
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown("**Consumer Loan Rates**")
+        consumer_rates_chart = create_multi_series_chart(
+            {
+                "Credit Card": filtered_data["credit_card_rate"],
+                "Personal Loan (24mo)": filtered_data["personal_loan_rate"],
+                "Auto Loan (48mo)": filtered_data["auto_loan_rate"],
+                "Mortgage (30yr)": filtered_data["mortgage_rate"],
+            },
+            "Consumer Borrowing Rates",
+            "Interest Rate (%)",
+            colors=["#EF553B", "#FFA15A", "#636EFA", "#00CC96"]
+        )
+        st.plotly_chart(consumer_rates_chart, use_container_width=True)
+
+    with col4:
+        st.markdown("**Treasury Rate vs. Mortgage Rate**")
+        treasury_mortgage_chart = create_multi_series_chart(
+            {
+                "30-Year Mortgage": filtered_data["mortgage_rate"],
+                "10-Year Treasury": filtered_data["treasury_10y"],
+            },
+            "Mortgage Rate vs. Treasury Rate",
+            "Interest Rate (%)",
+            colors=["#636EFA", "#00CC96"]
+        )
+        st.plotly_chart(treasury_mortgage_chart, use_container_width=True)
+        st.caption("Mortgage rates typically track Treasury rates with a spread")
+
+    st.markdown("---")
+
+    # Debt and Leverage
+    st.subheader("Debt & Leverage Metrics")
+    col5, col6 = st.columns(2)
+
+    with col5:
+        st.markdown("**Corporate & Household Debt**")
+        debt_chart = create_level_with_growth_chart(
+            filtered_data["corporate_debt"],
+            "Nonfinancial Corporate Debt Securities",
+            "Billions of $",
+            "#636EFA",
+            "Corporate Debt"
+        )
+        st.plotly_chart(debt_chart, use_container_width=True)
+
+        household_debt_chart = create_level_with_growth_chart(
+            filtered_data["household_debt"],
+            "Household & Nonprofit Debt",
+            "Billions of $",
+            "#EF553B",
+            "Household Debt"
+        )
+        st.plotly_chart(household_debt_chart, use_container_width=True)
+
+    with col6:
+        st.markdown("**Debt Ratios & Credit Gap**")
+        federal_debt_chart = create_single_chart(
+            filtered_data["federal_debt_gdp"],
+            "Federal Debt as % of GDP",
+            "Percent of GDP (%)",
+            "#AB63FA"
+        )
+        st.plotly_chart(federal_debt_chart, use_container_width=True)
+
+        credit_gap_chart = create_single_chart(
+            filtered_data["total_credit_gap"],
+            "Credit to Non-Financial Sector Gap",
+            "% of GDP",
+            "#FFA15A"
+        )
+        st.plotly_chart(credit_gap_chart, use_container_width=True)
+        st.caption("Credit gap shows deviation from long-term trend; positive values may signal excess credit")
+
+    st.markdown("---")
+
     # Data table (expandable)
     with st.expander("📊 View Raw Data"):
         st.subheader("Recent Data Points")
@@ -653,6 +886,21 @@ def main():
                 "Consumer Credit (Billions $)": filtered_data["consumer_credit"],
                 "Disposable Income (Billions $)": filtered_data["disposable_income"],
                 "Initial Claims (K)": filtered_data["initial_claims"],
+                # Credit Market Indicators
+                "HY Spread (%)": filtered_data["hy_spread"],
+                "Baa Spread (%)": filtered_data["baa_spread"],
+                "Aaa Spread (%)": filtered_data["aaa_spread"],
+                "IG Spread (%)": filtered_data["ig_spread"],
+                "10Y-2Y Yield (%)": filtered_data["yield_curve_10y2y"],
+                "10Y-3M Yield (%)": filtered_data["yield_curve_10y3m"],
+                "10Y Treasury (%)": filtered_data["treasury_10y"],
+                "Credit Card Rate (%)": filtered_data["credit_card_rate"],
+                "Personal Loan Rate (%)": filtered_data["personal_loan_rate"],
+                "Auto Loan Rate (%)": filtered_data["auto_loan_rate"],
+                "Corporate Debt (Billions $)": filtered_data["corporate_debt"],
+                "Household Debt (Billions $)": filtered_data["household_debt"],
+                "Federal Debt/GDP (%)": filtered_data["federal_debt_gdp"],
+                "Credit Gap (% GDP)": filtered_data["total_credit_gap"],
             }
         )
 

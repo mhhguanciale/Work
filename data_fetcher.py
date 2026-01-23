@@ -193,6 +193,119 @@ class FREDDataFetcher:
         """
         return self.get_series(FRED_SERIES["disposable_income"], use_cache=use_cache)
 
+    # Credit Market Indicators
+    def get_baa_spread_data(self, use_cache: bool = True) -> pd.Series:
+        """Get Moody's Baa corporate bond spread over 10-Year Treasury.
+
+        Returns:
+            Pandas Series with Baa spread (percentage points)
+        """
+        return self.get_series(FRED_SERIES["baa_spread"], use_cache=use_cache)
+
+    def get_aaa_spread_data(self, use_cache: bool = True) -> pd.Series:
+        """Get Moody's Aaa corporate bond spread over 10-Year Treasury.
+
+        Returns:
+            Pandas Series with Aaa spread (percentage points)
+        """
+        return self.get_series(FRED_SERIES["aaa_spread"], use_cache=use_cache)
+
+    def get_ig_spread_data(self, use_cache: bool = True) -> pd.Series:
+        """Get ICE BofA US Corporate Index option-adjusted spread.
+
+        Returns:
+            Pandas Series with investment grade spread (percentage points)
+        """
+        return self.get_series(FRED_SERIES["ig_spread"], use_cache=use_cache)
+
+    def get_hy_spread_data(self, use_cache: bool = True) -> pd.Series:
+        """Get ICE BofA US High Yield Index option-adjusted spread.
+
+        Returns:
+            Pandas Series with high yield spread (percentage points)
+        """
+        return self.get_series(FRED_SERIES["hy_spread"], use_cache=use_cache)
+
+    def get_yield_curve_10y2y_data(self, use_cache: bool = True) -> pd.Series:
+        """Get 10-Year minus 2-Year Treasury yield spread.
+
+        Returns:
+            Pandas Series with yield curve spread (percentage points)
+        """
+        return self.get_series(FRED_SERIES["yield_curve_10y2y"], use_cache=use_cache)
+
+    def get_yield_curve_10y3m_data(self, use_cache: bool = True) -> pd.Series:
+        """Get 10-Year minus 3-Month Treasury yield spread.
+
+        Returns:
+            Pandas Series with yield curve spread (percentage points)
+        """
+        return self.get_series(FRED_SERIES["yield_curve_10y3m"], use_cache=use_cache)
+
+    def get_treasury_10y_data(self, use_cache: bool = True) -> pd.Series:
+        """Get 10-Year Treasury constant maturity rate.
+
+        Returns:
+            Pandas Series with 10-Year Treasury rate (%)
+        """
+        return self.get_series(FRED_SERIES["treasury_10y"], use_cache=use_cache)
+
+    def get_personal_loan_rate_data(self, use_cache: bool = True) -> pd.Series:
+        """Get 24-month personal loan rate at commercial banks.
+
+        Returns:
+            Pandas Series with personal loan rate (%)
+        """
+        return self.get_series(FRED_SERIES["personal_loan_rate"], use_cache=use_cache)
+
+    def get_auto_loan_rate_data(self, use_cache: bool = True) -> pd.Series:
+        """Get 48-month new auto loan rate at commercial banks.
+
+        Returns:
+            Pandas Series with auto loan rate (%)
+        """
+        return self.get_series(FRED_SERIES["auto_loan_rate"], use_cache=use_cache)
+
+    def get_credit_card_rate_data(self, use_cache: bool = True) -> pd.Series:
+        """Get credit card interest rate (all accounts).
+
+        Returns:
+            Pandas Series with credit card rate (%)
+        """
+        return self.get_series(FRED_SERIES["credit_card_rate"], use_cache=use_cache)
+
+    def get_corporate_debt_data(self, use_cache: bool = True) -> pd.Series:
+        """Get nonfinancial corporate business debt securities.
+
+        Returns:
+            Pandas Series with corporate debt (billions of dollars)
+        """
+        return self.get_series(FRED_SERIES["corporate_debt"], use_cache=use_cache)
+
+    def get_household_debt_data(self, use_cache: bool = True) -> pd.Series:
+        """Get households and nonprofit organizations debt.
+
+        Returns:
+            Pandas Series with household debt (billions of dollars)
+        """
+        return self.get_series(FRED_SERIES["household_debt"], use_cache=use_cache)
+
+    def get_federal_debt_gdp_data(self, use_cache: bool = True) -> pd.Series:
+        """Get federal debt as percent of GDP.
+
+        Returns:
+            Pandas Series with federal debt to GDP ratio (%)
+        """
+        return self.get_series(FRED_SERIES["federal_debt_gdp"], use_cache=use_cache)
+
+    def get_total_credit_gap_data(self, use_cache: bool = True) -> pd.Series:
+        """Get credit to non-financial sector gap as percent of GDP.
+
+        Returns:
+            Pandas Series with credit gap (% of GDP)
+        """
+        return self.get_series(FRED_SERIES["total_credit_gap"], use_cache=use_cache)
+
     def get_all_data(self, use_cache: bool = True) -> Dict[str, pd.Series]:
         """Get all configured economic indicators.
 
@@ -214,6 +327,21 @@ class FREDDataFetcher:
             "retail_sales": self.get_retail_sales_data(use_cache=use_cache),
             "consumer_credit": self.get_consumer_credit_data(use_cache=use_cache),
             "disposable_income": self.get_disposable_income_data(use_cache=use_cache),
+            # Credit Market Indicators
+            "baa_spread": self.get_baa_spread_data(use_cache=use_cache),
+            "aaa_spread": self.get_aaa_spread_data(use_cache=use_cache),
+            "ig_spread": self.get_ig_spread_data(use_cache=use_cache),
+            "hy_spread": self.get_hy_spread_data(use_cache=use_cache),
+            "yield_curve_10y2y": self.get_yield_curve_10y2y_data(use_cache=use_cache),
+            "yield_curve_10y3m": self.get_yield_curve_10y3m_data(use_cache=use_cache),
+            "treasury_10y": self.get_treasury_10y_data(use_cache=use_cache),
+            "personal_loan_rate": self.get_personal_loan_rate_data(use_cache=use_cache),
+            "auto_loan_rate": self.get_auto_loan_rate_data(use_cache=use_cache),
+            "credit_card_rate": self.get_credit_card_rate_data(use_cache=use_cache),
+            "corporate_debt": self.get_corporate_debt_data(use_cache=use_cache),
+            "household_debt": self.get_household_debt_data(use_cache=use_cache),
+            "federal_debt_gdp": self.get_federal_debt_gdp_data(use_cache=use_cache),
+            "total_credit_gap": self.get_total_credit_gap_data(use_cache=use_cache),
         }
 
     def clear_cache(self):
