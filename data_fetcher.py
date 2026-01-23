@@ -137,6 +137,62 @@ class FREDDataFetcher:
         """
         return self.get_series(FRED_SERIES["housing_starts"], use_cache=use_cache)
 
+    def get_consumer_sentiment_data(self, use_cache: bool = True) -> pd.Series:
+        """Get University of Michigan Consumer Sentiment Index data.
+
+        Returns:
+            Pandas Series with consumer sentiment index
+        """
+        return self.get_series(FRED_SERIES["consumer_sentiment"], use_cache=use_cache)
+
+    def get_initial_claims_data(self, use_cache: bool = True) -> pd.Series:
+        """Get initial unemployment insurance claims data.
+
+        Returns:
+            Pandas Series with initial claims (thousands)
+        """
+        return self.get_series(FRED_SERIES["initial_claims"], use_cache=use_cache)
+
+    def get_personal_saving_rate_data(self, use_cache: bool = True) -> pd.Series:
+        """Get personal saving rate data.
+
+        Returns:
+            Pandas Series with personal saving rate (%)
+        """
+        return self.get_series(FRED_SERIES["personal_saving_rate"], use_cache=use_cache)
+
+    def get_personal_consumption_data(self, use_cache: bool = True) -> pd.Series:
+        """Get personal consumption expenditures data.
+
+        Returns:
+            Pandas Series with PCE (billions of dollars)
+        """
+        return self.get_series(FRED_SERIES["personal_consumption"], use_cache=use_cache)
+
+    def get_retail_sales_data(self, use_cache: bool = True) -> pd.Series:
+        """Get advance retail sales data.
+
+        Returns:
+            Pandas Series with retail sales (millions of dollars)
+        """
+        return self.get_series(FRED_SERIES["retail_sales"], use_cache=use_cache)
+
+    def get_consumer_credit_data(self, use_cache: bool = True) -> pd.Series:
+        """Get total consumer credit outstanding data.
+
+        Returns:
+            Pandas Series with consumer credit (billions of dollars)
+        """
+        return self.get_series(FRED_SERIES["consumer_credit"], use_cache=use_cache)
+
+    def get_disposable_income_data(self, use_cache: bool = True) -> pd.Series:
+        """Get real disposable personal income data.
+
+        Returns:
+            Pandas Series with disposable income (billions of chained 2017 dollars)
+        """
+        return self.get_series(FRED_SERIES["disposable_income"], use_cache=use_cache)
+
     def get_all_data(self, use_cache: bool = True) -> Dict[str, pd.Series]:
         """Get all configured economic indicators.
 
@@ -151,6 +207,13 @@ class FREDDataFetcher:
             "median_home_price": self.get_median_home_price_data(use_cache=use_cache),
             "home_price_index": self.get_home_price_index_data(use_cache=use_cache),
             "housing_starts": self.get_housing_starts_data(use_cache=use_cache),
+            "consumer_sentiment": self.get_consumer_sentiment_data(use_cache=use_cache),
+            "initial_claims": self.get_initial_claims_data(use_cache=use_cache),
+            "personal_saving_rate": self.get_personal_saving_rate_data(use_cache=use_cache),
+            "personal_consumption": self.get_personal_consumption_data(use_cache=use_cache),
+            "retail_sales": self.get_retail_sales_data(use_cache=use_cache),
+            "consumer_credit": self.get_consumer_credit_data(use_cache=use_cache),
+            "disposable_income": self.get_disposable_income_data(use_cache=use_cache),
         }
 
     def clear_cache(self):

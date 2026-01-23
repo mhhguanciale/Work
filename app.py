@@ -41,6 +41,99 @@ def filter_data_by_date(series: pd.Series, years_back: int) -> pd.Series:
     return series[series.index >= cutoff_date]
 
 
+def calculate_yoy_growth(series: pd.Series) -> pd.Series:
+    """Calculate year-over-year percentage growth rate.
+
+    Args:
+        series: Time series data (levels)
+
+    Returns:
+        Series with YoY growth rates (%)
+    """
+    # Calculate percentage change from 12 months ago (or 4 quarters for quarterly data)
+    # Detect frequency
+    if len(series) < 2:
+        return pd.Series(dtype=float)
+
+    # Try to infer the frequency
+    time_diff = (series.index[1] - series.index[0]).days
+
+    if time_diff > 60:  # Quarterly data (roughly 90 days)
+        periods = 4
+    elif time_diff > 20:  # Monthly data
+        periods = 12
+    else:  # Weekly or daily data
+        periods = 52
+
+    # Calculate YoY growth
+    yoy_growth = series.pct_change(periods=periods) * 100
+    return yoy_growth
+
+
+def create_level_with_growth_chart(
+    series: pd.Series,
+    title: str,
+    level_yaxis_title: str,
+    level_color: str,
+    series_name: str = None
+):
+    """Create a dual-axis chart showing level data and its YoY growth trend.
+
+    Args:
+        series: Time series data (levels)
+        title: Chart title
+        level_yaxis_title: Y-axis title for level data
+        level_color: Color for level data line
+        series_name: Name for the series (defaults to title)
+    """
+    if series_name is None:
+        series_name = title
+
+    # Calculate YoY growth
+    growth = calculate_yoy_growth(series)
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # Add level data trace
+    fig.add_trace(
+        go.Scatter(
+            x=series.index,
+            y=series.values,
+            name=f"{series_name} (Level)",
+            line=dict(color=level_color, width=2.5),
+            mode="lines",
+        ),
+        secondary_y=False,
+    )
+
+    # Add growth trend trace
+    fig.add_trace(
+        go.Scatter(
+            x=growth.index,
+            y=growth.values,
+            name=f"{series_name} (YoY Growth %)",
+            line=dict(color="#FFA15A", width=2, dash="dash"),
+            mode="lines",
+        ),
+        secondary_y=True,
+    )
+
+    # Update layout
+    fig.update_layout(
+        title=title,
+        hovermode="x unified",
+        height=500,
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
+
+    # Set y-axes titles
+    fig.update_yaxes(title_text=level_yaxis_title, secondary_y=False)
+    fig.update_yaxes(title_text="YoY Growth (%)", secondary_y=True)
+
+    return fig
+
+
 def create_dual_axis_chart(unemployment: pd.Series, gdp: pd.Series, title: str):
     """Create a dual-axis chart for unemployment and GDP."""
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -219,6 +312,66 @@ def display_housing_metric_cards(data: dict):
         st.caption(f"As of {housing_starts.index[-1].strftime('%B %Y')}")
 
 
+def display_consumer_metric_cards(data: dict):
+    """Display consumer sentiment and health metrics as cards."""
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        consumer_sentiment = data["consumer_sentiment"]
+        current_val = consumer_sentiment.iloc[-1]
+        prev_val = consumer_sentiment.iloc[-2] if len(consumer_sentiment) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="Consumer Sentiment",
+            value=f"{current_val:.1f}",
+            delta=f"{delta:.1f}",
+        )
+        st.caption(f"As of {consumer_sentiment.index[-1].strftime('%B %Y')}")
+
+    with col2:
+        personal_saving = data["personal_saving_rate"]
+        current_val = personal_saving.iloc[-1]
+        prev_val = personal_saving.iloc[-2] if len(personal_saving) > 1 else current_val
+        delta = current_val - prev_val
+
+        st.metric(
+            label="Personal Saving Rate",
+            value=f"{current_val:.1f}%",
+            delta=f"{delta:.1f}%",
+        )
+        st.caption(f"As of {personal_saving.index[-1].strftime('%B %Y')}")
+
+    with col3:
+        retail_sales = data["retail_sales"]
+        current_val = retail_sales.iloc[-1]
+        prev_val = retail_sales.iloc[-2] if len(retail_sales) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Retail Sales",
+            value=f"${current_val:,.0f}M",
+            delta=f"{delta_pct:+.1f}%",
+        )
+        st.caption(f"As of {retail_sales.index[-1].strftime('%B %Y')}")
+
+    with col4:
+        initial_claims = data["initial_claims"]
+        current_val = initial_claims.iloc[-1]
+        prev_val = initial_claims.iloc[-2] if len(initial_claims) > 1 else current_val
+        delta = current_val - prev_val
+        delta_pct = (delta / prev_val * 100) if prev_val != 0 else 0
+
+        st.metric(
+            label="Initial Jobless Claims",
+            value=f"{current_val:,.0f}K",
+            delta=f"{delta_pct:+.1f}%",
+            delta_color="inverse",
+        )
+        st.caption(f"As of {initial_claims.index[-1].strftime('%B %Y')}")
+
+
 def main():
     """Main dashboard application."""
     # Header
@@ -262,6 +415,17 @@ def main():
             - **Median Home Price**: Median sales price of houses sold
             - **Case-Shiller Index**: National home price index
             - **Housing Starts**: New privately owned housing units started
+
+            **Consumer Sentiment & Health:**
+            - **Consumer Sentiment**: University of Michigan Consumer Sentiment Index
+            - **Personal Saving Rate**: Personal savings as % of disposable income
+            - **Personal Consumption**: Personal consumption expenditures
+            - **Retail Sales**: Advance retail trade sales
+            - **Consumer Credit**: Total consumer credit outstanding
+            - **Disposable Income**: Real disposable personal income
+            - **Initial Claims**: Weekly initial unemployment insurance claims
+
+            **Note**: Charts with dual Y-axes show both level data and year-over-year growth trends.
 
             **Data Source**: [FRED](https://fred.stlouisfed.org/)
             """
@@ -376,6 +540,98 @@ def main():
 
     st.markdown("---")
 
+    # Consumer Sentiment & Health Section
+    st.subheader("Consumer Sentiment & Health Metrics")
+    display_consumer_metric_cards(data)
+
+    st.markdown("---")
+
+    # Consumer sentiment charts
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Consumer Sentiment Index")
+        consumer_sentiment_chart = create_level_with_growth_chart(
+            filtered_data["consumer_sentiment"],
+            "University of Michigan Consumer Sentiment Index",
+            "Index Level",
+            "#636EFA",
+            "Consumer Sentiment"
+        )
+        st.plotly_chart(consumer_sentiment_chart, use_container_width=True)
+
+    with col2:
+        st.subheader("Personal Consumption Expenditures")
+        pce_chart = create_level_with_growth_chart(
+            filtered_data["personal_consumption"],
+            "Personal Consumption Expenditures",
+            "Billions of $",
+            "#00CC96",
+            "PCE"
+        )
+        st.plotly_chart(pce_chart, use_container_width=True)
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.subheader("Real Disposable Personal Income")
+        income_chart = create_level_with_growth_chart(
+            filtered_data["disposable_income"],
+            "Real Disposable Personal Income",
+            "Billions of Chained 2017 $",
+            "#AB63FA",
+            "Disposable Income"
+        )
+        st.plotly_chart(income_chart, use_container_width=True)
+
+    with col4:
+        st.subheader("Consumer Credit Outstanding")
+        credit_chart = create_level_with_growth_chart(
+            filtered_data["consumer_credit"],
+            "Total Consumer Credit Outstanding",
+            "Billions of $",
+            "#EF553B",
+            "Consumer Credit"
+        )
+        st.plotly_chart(credit_chart, use_container_width=True)
+
+    col5, col6 = st.columns(2)
+
+    with col5:
+        st.subheader("Advance Retail Sales")
+        retail_chart = create_level_with_growth_chart(
+            filtered_data["retail_sales"],
+            "Advance Retail Sales",
+            "Millions of $",
+            "#FFA15A",
+            "Retail Sales"
+        )
+        st.plotly_chart(retail_chart, use_container_width=True)
+
+    with col6:
+        st.subheader("Personal Saving Rate")
+        saving_chart = create_single_chart(
+            filtered_data["personal_saving_rate"],
+            "Personal Saving Rate Over Time",
+            "Saving Rate (%)",
+            "#19D3F3",
+        )
+        st.plotly_chart(saving_chart, use_container_width=True)
+
+    # Initial Claims chart (weekly data, inverted for better visualization)
+    st.subheader("Initial Jobless Claims (Weekly)")
+    st.markdown("Lower values indicate a healthier job market")
+    claims_chart = create_level_with_growth_chart(
+        filtered_data["initial_claims"],
+        "Initial Unemployment Insurance Claims",
+        "Thousands of Claims",
+        "#FF6692",
+        "Initial Claims"
+    )
+    st.plotly_chart(claims_chart, use_container_width=True)
+
+    st.markdown("---")
+
     # Data table (expandable)
     with st.expander("📊 View Raw Data"):
         st.subheader("Recent Data Points")
@@ -390,6 +646,13 @@ def main():
                 "Median Home Price ($)": filtered_data["median_home_price"],
                 "Case-Shiller Index": filtered_data["home_price_index"],
                 "Housing Starts (K)": filtered_data["housing_starts"],
+                "Consumer Sentiment": filtered_data["consumer_sentiment"],
+                "Personal Saving Rate (%)": filtered_data["personal_saving_rate"],
+                "Personal Consumption (Billions $)": filtered_data["personal_consumption"],
+                "Retail Sales (Millions $)": filtered_data["retail_sales"],
+                "Consumer Credit (Billions $)": filtered_data["consumer_credit"],
+                "Disposable Income (Billions $)": filtered_data["disposable_income"],
+                "Initial Claims (K)": filtered_data["initial_claims"],
             }
         )
 

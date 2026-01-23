@@ -18,6 +18,14 @@ FRED_SERIES = {
     "median_home_price": "MSPUS",  # Median Sales Price of Houses Sold
     "home_price_index": "CSUSHPISA",  # S&P/Case-Shiller U.S. National Home Price Index
     "housing_starts": "HOUST",  # Housing Starts: Total New Privately Owned
+    # Consumer Sentiment & Health Metrics
+    "consumer_sentiment": "UMCSENT",  # University of Michigan Consumer Sentiment Index
+    "initial_claims": "ICSA",  # Initial Claims (Unemployment Insurance Weekly Claims)
+    "personal_saving_rate": "PSAVERT",  # Personal Saving Rate (%)
+    "personal_consumption": "PCE",  # Personal Consumption Expenditures (Billions)
+    "retail_sales": "RSXFS",  # Advance Retail Sales: Retail Trade (Millions)
+    "consumer_credit": "TOTALSL",  # Total Consumer Credit Outstanding (Billions)
+    "disposable_income": "DSPIC96",  # Real Disposable Personal Income (Billions, Chained 2017 $)
 }
 
 # Data cache settings
