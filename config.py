@@ -46,17 +46,17 @@ FRED_SERIES = {
     "total_credit_gap": "QUSCAM",  # Credit to Non-Financial Sector Gap (% of GDP)
     # Healthcare Indicators
     # Healthcare Spending
-    "healthcare_pce": "HLTHSCPCHCSA",  # Personal Consumption Expenditures: Health Care (Billions)
-    "healthcare_gdp_pct": "DHCERA3Q086SBEA",  # Health Care Expenditures as % of GDP
+    "healthcare_pce": "DHLCRC1Q027SBEA",  # Real Personal Consumption Expenditures: Health Care
+    "healthcare_gdp_pct": "HLTHSCPCHP",  # Health Care as Share of Personal Consumption Expenditures
     # Healthcare Costs & Inflation
     "cpi_medical": "CPIMEDSL",  # CPI: Medical Care
     "cpi_hospital": "CPIHOSSL",  # CPI: Hospital Services
-    "cpi_prescription": "CPIPRSLS",  # CPI: Prescription Drugs
+    "cpi_prescription": "CUUR0000SEMF01",  # CPI: Prescription Drugs
     # Healthcare Employment & Wages
     "healthcare_employment": "USEHS",  # All Employees: Health Care and Social Assistance (Thousands)
     "healthcare_wages": "CES6562000003",  # Average Hourly Earnings: Health Care (Dollars per Hour)
     # Health Insurance Coverage
-    "uninsured_number": "NILFR",  # Number of Persons Without Health Insurance (Millions)
+    "uninsured_pct": "SAHPPLHINS",  # Percent of People With Health Insurance (invert for uninsured %)
 }
 
 # Data cache settings

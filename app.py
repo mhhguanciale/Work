@@ -487,7 +487,7 @@ def display_healthcare_metric_cards(data: dict):
         delta = current_val - prev_val
 
         st.metric(
-            label="Healthcare % of GDP",
+            label="Healthcare % of PCE",
             value=f"{current_val:.1f}%",
             delta=f"{delta:+.2f}%",
         )
@@ -522,18 +522,17 @@ def display_healthcare_metric_cards(data: dict):
         st.caption(f"As of {healthcare_employment.index[-1].strftime('%B %Y')}")
 
     with col4:
-        uninsured = data["uninsured_number"]
-        current_val = uninsured.iloc[-1]
-        prev_val = uninsured.iloc[-2] if len(uninsured) > 1 else current_val
+        insured_pct = data["uninsured_pct"]
+        current_val = insured_pct.iloc[-1]
+        prev_val = insured_pct.iloc[-2] if len(insured_pct) > 1 else current_val
         delta = current_val - prev_val
 
         st.metric(
-            label="Uninsured Population",
-            value=f"{current_val:.1f}M",
-            delta=f"{delta:+.1f}M",
-            delta_color="inverse",  # Lower uninsured is better
+            label="Health Insurance Rate",
+            value=f"{current_val:.1f}%",
+            delta=f"{delta:+.1f}%",
         )
-        st.caption(f"As of {uninsured.index[-1].strftime('%B %Y')}")
+        st.caption(f"As of {insured_pct.index[-1].strftime('%B %Y')}")
 
 
 def main():
@@ -598,11 +597,11 @@ def main():
 
             **Healthcare Indicators:**
             - **Healthcare Spending**: Personal health care expenditures (PCE)
-            - **Healthcare % of GDP**: Health expenditures as percent of GDP
+            - **Healthcare % of Consumption**: Health expenditures as share of personal consumption
             - **Healthcare Costs**: CPI for medical care, hospital services, prescription drugs
             - **Healthcare Employment**: Healthcare and social assistance sector jobs
             - **Healthcare Wages**: Average hourly earnings in healthcare
-            - **Health Insurance**: Number of persons without health insurance
+            - **Health Insurance**: Percent of people with health insurance coverage
 
             **Note**: Charts with dual Y-axes show both level data and year-over-year growth trends.
 
@@ -954,13 +953,13 @@ def main():
         )
         st.plotly_chart(healthcare_pce_chart, use_container_width=True)
 
-        healthcare_gdp_chart = create_single_chart(
+        healthcare_pce_pct_chart = create_single_chart(
             filtered_data["healthcare_gdp_pct"],
-            "Healthcare Expenditures as % of GDP",
-            "Percent of GDP (%)",
+            "Healthcare as Share of Personal Consumption",
+            "Percent of PCE (%)",
             "#AB63FA"
         )
-        st.plotly_chart(healthcare_gdp_chart, use_container_width=True)
+        st.plotly_chart(healthcare_pce_pct_chart, use_container_width=True)
 
     with col2:
         st.markdown("**Healthcare Cost Inflation**")
@@ -1005,14 +1004,14 @@ def main():
 
     with col4:
         st.markdown("**Health Insurance Coverage**")
-        uninsured_chart = create_single_chart(
-            filtered_data["uninsured_number"],
-            "Number of Persons Without Health Insurance",
-            "Millions of Persons",
-            "#EF553B"
+        insured_chart = create_single_chart(
+            filtered_data["uninsured_pct"],
+            "Percent of People With Health Insurance",
+            "Percent (%)",
+            "#00CC96"
         )
-        st.plotly_chart(uninsured_chart, use_container_width=True)
-        st.caption("Lower values indicate better insurance coverage")
+        st.plotly_chart(insured_chart, use_container_width=True)
+        st.caption("Higher values indicate better insurance coverage")
 
     st.markdown("---")
 
@@ -1054,13 +1053,13 @@ def main():
                 "Credit Gap (% GDP)": filtered_data["total_credit_gap"],
                 # Healthcare Indicators
                 "Healthcare PCE (Billions $)": filtered_data["healthcare_pce"],
-                "Healthcare % of GDP": filtered_data["healthcare_gdp_pct"],
+                "Healthcare % of PCE": filtered_data["healthcare_gdp_pct"],
                 "CPI Medical Care": filtered_data["cpi_medical"],
                 "CPI Hospital Services": filtered_data["cpi_hospital"],
                 "CPI Prescription Drugs": filtered_data["cpi_prescription"],
                 "Healthcare Employment (K)": filtered_data["healthcare_employment"],
                 "Healthcare Wages ($/hr)": filtered_data["healthcare_wages"],
-                "Uninsured (Millions)": filtered_data["uninsured_number"],
+                "Health Insurance Rate (%)": filtered_data["uninsured_pct"],
             }
         )
 
