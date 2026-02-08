@@ -441,7 +441,7 @@ def display_credit_metric_cards(data: dict):
         delta = current_val - prev_val
 
         st.metric(
-            label="Baa Spread",
+            label="BBB Spread",
             value=f"{current_val:.2f}%",
             delta=f"{delta:+.2f}%",
             delta_color="inverse",
@@ -487,7 +487,7 @@ def display_healthcare_metric_cards(data: dict):
         delta = current_val - prev_val
 
         st.metric(
-            label="Healthcare % of GDP",
+            label="Healthcare % of PCE",
             value=f"{current_val:.1f}%",
             delta=f"{delta:+.2f}%",
         )
@@ -522,18 +522,17 @@ def display_healthcare_metric_cards(data: dict):
         st.caption(f"As of {healthcare_employment.index[-1].strftime('%B %Y')}")
 
     with col4:
-        uninsured = data["uninsured_number"]
-        current_val = uninsured.iloc[-1]
-        prev_val = uninsured.iloc[-2] if len(uninsured) > 1 else current_val
+        insured_pct = data["uninsured_pct"]
+        current_val = insured_pct.iloc[-1]
+        prev_val = insured_pct.iloc[-2] if len(insured_pct) > 1 else current_val
         delta = current_val - prev_val
 
         st.metric(
-            label="Uninsured Population",
-            value=f"{current_val:.1f}M",
-            delta=f"{delta:+.1f}M",
-            delta_color="inverse",  # Lower uninsured is better
+            label="Health Insurance Rate",
+            value=f"{current_val:.1f}%",
+            delta=f"{delta:+.1f}%",
         )
-        st.caption(f"As of {uninsured.index[-1].strftime('%B %Y')}")
+        st.caption(f"As of {insured_pct.index[-1].strftime('%B %Y')}")
 
 
 def main():
@@ -590,19 +589,19 @@ def main():
             - **Initial Claims**: Weekly initial unemployment insurance claims
 
             **Credit Market Indicators:**
-            - **Credit Spreads**: Corporate bond spreads (Aaa, Baa, IG, High Yield)
+            - **Credit Spreads**: Corporate bond spreads (AAA, BBB, IG, High Yield)
             - **Yield Curve**: Treasury yield spreads (10Y-2Y, 10Y-3M)
-            - **Borrowing Rates**: Consumer rates (credit card, auto, personal, mortgage)
+            - **Borrowing Rates**: Consumer rates (credit card, auto, prime, mortgage)
             - **Debt Levels**: Corporate and household debt securities
-            - **Leverage Metrics**: Federal debt/GDP ratio, credit gap
+            - **Leverage Metrics**: Federal debt/GDP ratio, household debt service
 
             **Healthcare Indicators:**
             - **Healthcare Spending**: Personal health care expenditures (PCE)
-            - **Healthcare % of GDP**: Health expenditures as percent of GDP
+            - **Healthcare % of Consumption**: Health expenditures as share of personal consumption
             - **Healthcare Costs**: CPI for medical care, hospital services, prescription drugs
             - **Healthcare Employment**: Healthcare and social assistance sector jobs
             - **Healthcare Wages**: Average hourly earnings in healthcare
-            - **Health Insurance**: Number of persons without health insurance
+            - **Health Insurance**: Percent of people with health insurance coverage
 
             **Note**: Charts with dual Y-axes show both level data and year-over-year growth trends.
 
@@ -827,8 +826,8 @@ def main():
             {
                 "High Yield": filtered_data["hy_spread"],
                 "Investment Grade": filtered_data["ig_spread"],
-                "Baa": filtered_data["baa_spread"],
-                "Aaa": filtered_data["aaa_spread"],
+                "BBB": filtered_data["baa_spread"],
+                "AAA": filtered_data["aaa_spread"],
             },
             "Corporate Bond Spreads Over Treasuries",
             "Spread (percentage points)",
@@ -862,7 +861,7 @@ def main():
         consumer_rates_chart = create_multi_series_chart(
             {
                 "Credit Card": filtered_data["credit_card_rate"],
-                "Personal Loan (24mo)": filtered_data["personal_loan_rate"],
+                "Prime Rate": filtered_data["personal_loan_rate"],
                 "Auto Loan (48mo)": filtered_data["auto_loan_rate"],
                 "Mortgage (30yr)": filtered_data["mortgage_rate"],
             },
@@ -922,14 +921,14 @@ def main():
         )
         st.plotly_chart(federal_debt_chart, use_container_width=True)
 
-        credit_gap_chart = create_single_chart(
+        debt_service_chart = create_single_chart(
             filtered_data["total_credit_gap"],
-            "Credit to Non-Financial Sector Gap",
-            "% of GDP",
+            "Household Debt Service Payments",
+            "% of Disposable Income",
             "#FFA15A"
         )
-        st.plotly_chart(credit_gap_chart, use_container_width=True)
-        st.caption("Credit gap shows deviation from long-term trend; positive values may signal excess credit")
+        st.plotly_chart(debt_service_chart, use_container_width=True)
+        st.caption("Higher values indicate households spending more income on debt payments")
 
     st.markdown("---")
 
@@ -954,13 +953,13 @@ def main():
         )
         st.plotly_chart(healthcare_pce_chart, use_container_width=True)
 
-        healthcare_gdp_chart = create_single_chart(
+        healthcare_pce_pct_chart = create_single_chart(
             filtered_data["healthcare_gdp_pct"],
-            "Healthcare Expenditures as % of GDP",
-            "Percent of GDP (%)",
+            "Healthcare as Share of Personal Consumption",
+            "Percent of PCE (%)",
             "#AB63FA"
         )
-        st.plotly_chart(healthcare_gdp_chart, use_container_width=True)
+        st.plotly_chart(healthcare_pce_pct_chart, use_container_width=True)
 
     with col2:
         st.markdown("**Healthcare Cost Inflation**")
@@ -1005,14 +1004,14 @@ def main():
 
     with col4:
         st.markdown("**Health Insurance Coverage**")
-        uninsured_chart = create_single_chart(
-            filtered_data["uninsured_number"],
-            "Number of Persons Without Health Insurance",
-            "Millions of Persons",
-            "#EF553B"
+        insured_chart = create_single_chart(
+            filtered_data["uninsured_pct"],
+            "Percent of People With Health Insurance",
+            "Percent (%)",
+            "#00CC96"
         )
-        st.plotly_chart(uninsured_chart, use_container_width=True)
-        st.caption("Lower values indicate better insurance coverage")
+        st.plotly_chart(insured_chart, use_container_width=True)
+        st.caption("Higher values indicate better insurance coverage")
 
     st.markdown("---")
 
@@ -1039,28 +1038,28 @@ def main():
                 "Initial Claims (K)": filtered_data["initial_claims"],
                 # Credit Market Indicators
                 "HY Spread (%)": filtered_data["hy_spread"],
-                "Baa Spread (%)": filtered_data["baa_spread"],
-                "Aaa Spread (%)": filtered_data["aaa_spread"],
+                "BBB Spread (%)": filtered_data["baa_spread"],
+                "AAA Spread (%)": filtered_data["aaa_spread"],
                 "IG Spread (%)": filtered_data["ig_spread"],
                 "10Y-2Y Yield (%)": filtered_data["yield_curve_10y2y"],
                 "10Y-3M Yield (%)": filtered_data["yield_curve_10y3m"],
                 "10Y Treasury (%)": filtered_data["treasury_10y"],
                 "Credit Card Rate (%)": filtered_data["credit_card_rate"],
-                "Personal Loan Rate (%)": filtered_data["personal_loan_rate"],
+                "Prime Rate (%)": filtered_data["personal_loan_rate"],
                 "Auto Loan Rate (%)": filtered_data["auto_loan_rate"],
                 "Corporate Debt (Billions $)": filtered_data["corporate_debt"],
                 "Household Debt (Billions $)": filtered_data["household_debt"],
                 "Federal Debt/GDP (%)": filtered_data["federal_debt_gdp"],
-                "Credit Gap (% GDP)": filtered_data["total_credit_gap"],
+                "Household Debt Service (%)": filtered_data["total_credit_gap"],
                 # Healthcare Indicators
                 "Healthcare PCE (Billions $)": filtered_data["healthcare_pce"],
-                "Healthcare % of GDP": filtered_data["healthcare_gdp_pct"],
+                "Healthcare % of PCE": filtered_data["healthcare_gdp_pct"],
                 "CPI Medical Care": filtered_data["cpi_medical"],
                 "CPI Hospital Services": filtered_data["cpi_hospital"],
                 "CPI Prescription Drugs": filtered_data["cpi_prescription"],
                 "Healthcare Employment (K)": filtered_data["healthcare_employment"],
                 "Healthcare Wages ($/hr)": filtered_data["healthcare_wages"],
-                "Uninsured (Millions)": filtered_data["uninsured_number"],
+                "Health Insurance Rate (%)": filtered_data["uninsured_pct"],
             }
         )
 

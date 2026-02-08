@@ -363,13 +363,13 @@ class FREDDataFetcher:
         """
         return self.get_series(FRED_SERIES["healthcare_wages"], use_cache=use_cache)
 
-    def get_uninsured_number_data(self, use_cache: bool = True) -> pd.Series:
-        """Get number of persons without health insurance.
+    def get_uninsured_pct_data(self, use_cache: bool = True) -> pd.Series:
+        """Get percent of people with health insurance.
 
         Returns:
-            Pandas Series with uninsured persons (millions)
+            Pandas Series with insured percentage (can calculate uninsured as 100 - value)
         """
-        return self.get_series(FRED_SERIES["uninsured_number"], use_cache=use_cache)
+        return self.get_series(FRED_SERIES["uninsured_pct"], use_cache=use_cache)
 
     def get_all_data(self, use_cache: bool = True) -> Dict[str, pd.Series]:
         """Get all configured economic indicators.
@@ -415,7 +415,7 @@ class FREDDataFetcher:
             "cpi_prescription": self.get_cpi_prescription_data(use_cache=use_cache),
             "healthcare_employment": self.get_healthcare_employment_data(use_cache=use_cache),
             "healthcare_wages": self.get_healthcare_wages_data(use_cache=use_cache),
-            "uninsured_number": self.get_uninsured_number_data(use_cache=use_cache),
+            "uninsured_pct": self.get_uninsured_pct_data(use_cache=use_cache),
         }
 
     def clear_cache(self):
