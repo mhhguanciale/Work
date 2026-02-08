@@ -37,7 +37,7 @@ FRED_SERIES = {
     # Borrowing Rates
     "treasury_10y": "DGS10",  # 10-Year Treasury Constant Maturity Rate
     "personal_loan_rate": "DPRIME",  # Bank Prime Loan Rate (proxy for personal loans)
-    "auto_loan_rate": "RIFLPBCIANM48",  # 48-Month Auto Loan Rate
+    "auto_loan_rate": "TERMCBAUTO48NS",  # 48-Month New Auto Loan Rate (Commercial Banks)
     "credit_card_rate": "TERMCBCCALLNS",  # Credit Card Interest Rate (All Accounts)
     # Leverage & Debt Metrics
     "corporate_debt": "BCNSDODNS",  # Nonfinancial Corporate Business Debt Securities
@@ -47,7 +47,7 @@ FRED_SERIES = {
     # Healthcare Indicators
     # Healthcare Spending
     "healthcare_pce": "DHLCRC1Q027SBEA",  # Real Personal Consumption Expenditures: Health Care
-    "healthcare_gdp_pct": "HLTHSCPCHP",  # Health Care as Share of Personal Consumption Expenditures
+    "healthcare_gdp_pct": "VAPGDPHCSA",  # Health Care and Social Assistance as a Percentage of GDP
     # Healthcare Costs & Inflation
     "cpi_medical": "CPIMEDSL",  # CPI: Medical Care
     "cpi_hospital": "CPIHOSSL",  # CPI: Hospital Services
@@ -56,7 +56,7 @@ FRED_SERIES = {
     "healthcare_employment": "USEHS",  # All Employees: Health Care and Social Assistance (Thousands)
     "healthcare_wages": "CES6562000003",  # Average Hourly Earnings: Health Care (Dollars per Hour)
     # Health Insurance Coverage
-    "uninsured_pct": "SAHPPLHINS",  # Percent of People With Health Insurance (invert for uninsured %)
+    "uninsured_pct": "USHICCOVPCT",  # Health Insurance Coverage Rate (Discontinued, historical data)
 }
 
 # Data cache settings
