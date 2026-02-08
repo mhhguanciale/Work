@@ -441,7 +441,7 @@ def display_credit_metric_cards(data: dict):
         delta = current_val - prev_val
 
         st.metric(
-            label="Baa Spread",
+            label="BBB Spread",
             value=f"{current_val:.2f}%",
             delta=f"{delta:+.2f}%",
             delta_color="inverse",
@@ -589,11 +589,11 @@ def main():
             - **Initial Claims**: Weekly initial unemployment insurance claims
 
             **Credit Market Indicators:**
-            - **Credit Spreads**: Corporate bond spreads (Aaa, Baa, IG, High Yield)
+            - **Credit Spreads**: Corporate bond spreads (AAA, BBB, IG, High Yield)
             - **Yield Curve**: Treasury yield spreads (10Y-2Y, 10Y-3M)
-            - **Borrowing Rates**: Consumer rates (credit card, auto, personal, mortgage)
+            - **Borrowing Rates**: Consumer rates (credit card, auto, prime, mortgage)
             - **Debt Levels**: Corporate and household debt securities
-            - **Leverage Metrics**: Federal debt/GDP ratio, credit gap
+            - **Leverage Metrics**: Federal debt/GDP ratio, household debt service
 
             **Healthcare Indicators:**
             - **Healthcare Spending**: Personal health care expenditures (PCE)
@@ -826,8 +826,8 @@ def main():
             {
                 "High Yield": filtered_data["hy_spread"],
                 "Investment Grade": filtered_data["ig_spread"],
-                "Baa": filtered_data["baa_spread"],
-                "Aaa": filtered_data["aaa_spread"],
+                "BBB": filtered_data["baa_spread"],
+                "AAA": filtered_data["aaa_spread"],
             },
             "Corporate Bond Spreads Over Treasuries",
             "Spread (percentage points)",
@@ -861,7 +861,7 @@ def main():
         consumer_rates_chart = create_multi_series_chart(
             {
                 "Credit Card": filtered_data["credit_card_rate"],
-                "Personal Loan (24mo)": filtered_data["personal_loan_rate"],
+                "Prime Rate": filtered_data["personal_loan_rate"],
                 "Auto Loan (48mo)": filtered_data["auto_loan_rate"],
                 "Mortgage (30yr)": filtered_data["mortgage_rate"],
             },
@@ -921,14 +921,14 @@ def main():
         )
         st.plotly_chart(federal_debt_chart, use_container_width=True)
 
-        credit_gap_chart = create_single_chart(
+        debt_service_chart = create_single_chart(
             filtered_data["total_credit_gap"],
-            "Credit to Non-Financial Sector Gap",
-            "% of GDP",
+            "Household Debt Service Payments",
+            "% of Disposable Income",
             "#FFA15A"
         )
-        st.plotly_chart(credit_gap_chart, use_container_width=True)
-        st.caption("Credit gap shows deviation from long-term trend; positive values may signal excess credit")
+        st.plotly_chart(debt_service_chart, use_container_width=True)
+        st.caption("Higher values indicate households spending more income on debt payments")
 
     st.markdown("---")
 
@@ -1038,19 +1038,19 @@ def main():
                 "Initial Claims (K)": filtered_data["initial_claims"],
                 # Credit Market Indicators
                 "HY Spread (%)": filtered_data["hy_spread"],
-                "Baa Spread (%)": filtered_data["baa_spread"],
-                "Aaa Spread (%)": filtered_data["aaa_spread"],
+                "BBB Spread (%)": filtered_data["baa_spread"],
+                "AAA Spread (%)": filtered_data["aaa_spread"],
                 "IG Spread (%)": filtered_data["ig_spread"],
                 "10Y-2Y Yield (%)": filtered_data["yield_curve_10y2y"],
                 "10Y-3M Yield (%)": filtered_data["yield_curve_10y3m"],
                 "10Y Treasury (%)": filtered_data["treasury_10y"],
                 "Credit Card Rate (%)": filtered_data["credit_card_rate"],
-                "Personal Loan Rate (%)": filtered_data["personal_loan_rate"],
+                "Prime Rate (%)": filtered_data["personal_loan_rate"],
                 "Auto Loan Rate (%)": filtered_data["auto_loan_rate"],
                 "Corporate Debt (Billions $)": filtered_data["corporate_debt"],
                 "Household Debt (Billions $)": filtered_data["household_debt"],
                 "Federal Debt/GDP (%)": filtered_data["federal_debt_gdp"],
-                "Credit Gap (% GDP)": filtered_data["total_credit_gap"],
+                "Household Debt Service (%)": filtered_data["total_credit_gap"],
                 # Healthcare Indicators
                 "Healthcare PCE (Billions $)": filtered_data["healthcare_pce"],
                 "Healthcare % of PCE": filtered_data["healthcare_gdp_pct"],
