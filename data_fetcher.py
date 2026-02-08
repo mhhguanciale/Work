@@ -1,4 +1,5 @@
 """Module for fetching economic data from FRED API."""
+import logging
 import os
 import pickle
 from datetime import datetime, timedelta
@@ -9,6 +10,8 @@ import pandas as pd
 from fredapi import Fred
 
 from config import FRED_API_KEY, FRED_SERIES, CACHE_DIR, CACHE_EXPIRY_HOURS
+
+logger = logging.getLogger(__name__)
 
 
 class FREDDataFetcher:
@@ -57,7 +60,7 @@ class FREDDataFetcher:
         with open(cache_path, 'wb') as f:
             pickle.dump(data, f)
 
-    def get_series(self, series_id: str, use_cache: bool = True) -> pd.Series:
+    def get_series(self, series_id: str, use_cache: bool = True) -> Optional[pd.Series]:
         """Fetch a data series from FRED.
 
         Args:
@@ -65,19 +68,25 @@ class FREDDataFetcher:
             use_cache: Whether to use cached data if available
 
         Returns:
-            Pandas Series with the economic data
+            Pandas Series with the economic data, or None if the fetch failed
         """
         # Try to load from cache first
         if use_cache:
             cached_data = self._load_from_cache(series_id)
             if cached_data is not None:
+                logger.debug("Loaded series %s from cache", series_id)
                 return cached_data
 
         # Fetch fresh data from FRED
-        data = self.fred.get_series(series_id)
+        try:
+            data = self.fred.get_series(series_id)
+        except Exception as e:
+            logger.error("Failed to fetch FRED series '%s': %s", series_id, e)
+            return None
 
         # Save to cache
         self._save_to_cache(series_id, data)
+        logger.info("Fetched and cached series %s (%d data points)", series_id, len(data))
 
         return data
 
@@ -374,49 +383,69 @@ class FREDDataFetcher:
     def get_all_data(self, use_cache: bool = True) -> Dict[str, pd.Series]:
         """Get all configured economic indicators.
 
+        Fetches each series individually so that a failure in one series
+        does not prevent the rest from loading.
+
         Returns:
-            Dictionary mapping indicator names to their data series
+            Dictionary mapping indicator names to their data series.
+            Series that failed to load are omitted from the result.
         """
-        return {
-            "unemployment": self.get_unemployment_data(use_cache=use_cache),
-            "gdp": self.get_gdp_data(use_cache=use_cache),
-            "gdp_growth": self.get_gdp_growth_data(use_cache=use_cache),
-            "mortgage_rate": self.get_mortgage_rate_data(use_cache=use_cache),
-            "median_home_price": self.get_median_home_price_data(use_cache=use_cache),
-            "home_price_index": self.get_home_price_index_data(use_cache=use_cache),
-            "housing_starts": self.get_housing_starts_data(use_cache=use_cache),
-            "consumer_sentiment": self.get_consumer_sentiment_data(use_cache=use_cache),
-            "initial_claims": self.get_initial_claims_data(use_cache=use_cache),
-            "personal_saving_rate": self.get_personal_saving_rate_data(use_cache=use_cache),
-            "personal_consumption": self.get_personal_consumption_data(use_cache=use_cache),
-            "retail_sales": self.get_retail_sales_data(use_cache=use_cache),
-            "consumer_credit": self.get_consumer_credit_data(use_cache=use_cache),
-            "disposable_income": self.get_disposable_income_data(use_cache=use_cache),
+        fetchers = {
+            "unemployment": self.get_unemployment_data,
+            "gdp": self.get_gdp_data,
+            "gdp_growth": self.get_gdp_growth_data,
+            "mortgage_rate": self.get_mortgage_rate_data,
+            "median_home_price": self.get_median_home_price_data,
+            "home_price_index": self.get_home_price_index_data,
+            "housing_starts": self.get_housing_starts_data,
+            "consumer_sentiment": self.get_consumer_sentiment_data,
+            "initial_claims": self.get_initial_claims_data,
+            "personal_saving_rate": self.get_personal_saving_rate_data,
+            "personal_consumption": self.get_personal_consumption_data,
+            "retail_sales": self.get_retail_sales_data,
+            "consumer_credit": self.get_consumer_credit_data,
+            "disposable_income": self.get_disposable_income_data,
             # Credit Market Indicators
-            "baa_spread": self.get_baa_spread_data(use_cache=use_cache),
-            "aaa_spread": self.get_aaa_spread_data(use_cache=use_cache),
-            "ig_spread": self.get_ig_spread_data(use_cache=use_cache),
-            "hy_spread": self.get_hy_spread_data(use_cache=use_cache),
-            "yield_curve_10y2y": self.get_yield_curve_10y2y_data(use_cache=use_cache),
-            "yield_curve_10y3m": self.get_yield_curve_10y3m_data(use_cache=use_cache),
-            "treasury_10y": self.get_treasury_10y_data(use_cache=use_cache),
-            "personal_loan_rate": self.get_personal_loan_rate_data(use_cache=use_cache),
-            "auto_loan_rate": self.get_auto_loan_rate_data(use_cache=use_cache),
-            "credit_card_rate": self.get_credit_card_rate_data(use_cache=use_cache),
-            "corporate_debt": self.get_corporate_debt_data(use_cache=use_cache),
-            "household_debt": self.get_household_debt_data(use_cache=use_cache),
-            "federal_debt_gdp": self.get_federal_debt_gdp_data(use_cache=use_cache),
-            "total_credit_gap": self.get_total_credit_gap_data(use_cache=use_cache),
+            "baa_spread": self.get_baa_spread_data,
+            "aaa_spread": self.get_aaa_spread_data,
+            "ig_spread": self.get_ig_spread_data,
+            "hy_spread": self.get_hy_spread_data,
+            "yield_curve_10y2y": self.get_yield_curve_10y2y_data,
+            "yield_curve_10y3m": self.get_yield_curve_10y3m_data,
+            "treasury_10y": self.get_treasury_10y_data,
+            "personal_loan_rate": self.get_personal_loan_rate_data,
+            "auto_loan_rate": self.get_auto_loan_rate_data,
+            "credit_card_rate": self.get_credit_card_rate_data,
+            "corporate_debt": self.get_corporate_debt_data,
+            "household_debt": self.get_household_debt_data,
+            "federal_debt_gdp": self.get_federal_debt_gdp_data,
+            "total_credit_gap": self.get_total_credit_gap_data,
             # Healthcare Indicators
-            "healthcare_pce": self.get_healthcare_pce_data(use_cache=use_cache),
-            "healthcare_gdp_pct": self.get_healthcare_gdp_pct_data(use_cache=use_cache),
-            "cpi_medical": self.get_cpi_medical_data(use_cache=use_cache),
-            "cpi_hospital": self.get_cpi_hospital_data(use_cache=use_cache),
-            "cpi_prescription": self.get_cpi_prescription_data(use_cache=use_cache),
-            "healthcare_employment": self.get_healthcare_employment_data(use_cache=use_cache),
-            "healthcare_wages": self.get_healthcare_wages_data(use_cache=use_cache),
-            "uninsured_pct": self.get_uninsured_pct_data(use_cache=use_cache),
+            "healthcare_pce": self.get_healthcare_pce_data,
+            "healthcare_gdp_pct": self.get_healthcare_gdp_pct_data,
+            "cpi_medical": self.get_cpi_medical_data,
+            "cpi_hospital": self.get_cpi_hospital_data,
+            "cpi_prescription": self.get_cpi_prescription_data,
+            "healthcare_employment": self.get_healthcare_employment_data,
+            "healthcare_wages": self.get_healthcare_wages_data,
+            "uninsured_pct": self.get_uninsured_pct_data,
         }
+
+        results = {}
+        failed = []
+        for name, fetcher in fetchers.items():
+            series = fetcher(use_cache=use_cache)
+            if series is not None:
+                results[name] = series
+            else:
+                failed.append(name)
+
+        if failed:
+            logger.warning(
+                "Failed to load %d series: %s", len(failed), ", ".join(failed)
+            )
+
+        return results
 
     def clear_cache(self):
         """Clear all cached data."""

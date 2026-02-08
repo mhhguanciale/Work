@@ -4,52 +4,65 @@
 This script can be run manually or scheduled via cron/GitHub Actions
 to refresh the data cache daily.
 """
+import logging
 import sys
 from datetime import datetime
 
 from data_fetcher import FREDDataFetcher
 from config import FRED_SERIES
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 def main():
     """Update all FRED data series."""
-    print(f"Starting data update at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("-" * 60)
+    logger.info("Starting data update at %s", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
     try:
         # Initialize fetcher
         fetcher = FREDDataFetcher()
-        print("✓ FRED API client initialized")
+        logger.info("FRED API client initialized")
 
         # Clear existing cache
         fetcher.clear_cache()
-        print("✓ Cache cleared")
+        logger.info("Cache cleared")
 
         # Fetch fresh data for all series
-        print("\nFetching data from FRED:")
+        logger.info("Fetching data from FRED:")
+        failed = []
         for name, series_id in FRED_SERIES.items():
-            print(f"  - {name.upper()} ({series_id})...", end=" ")
             data = fetcher.get_series(series_id, use_cache=False)
-            print(f"✓ ({len(data)} data points)")
+            if data is None:
+                logger.error("FAILED: %s (%s)", name, series_id)
+                failed.append(f"{name} ({series_id})")
+                continue
+            logger.info(
+                "  %s (%s): %d data points, latest: %.2f (as of %s)",
+                name, series_id, len(data),
+                data.iloc[-1] if len(data) > 0 else 0,
+                data.index[-1].strftime('%Y-%m-%d') if len(data) > 0 else "N/A",
+            )
 
-            # Display latest value
-            if len(data) > 0:
-                latest = data.iloc[-1]
-                latest_date = data.index[-1]
-                print(f"    Latest: {latest:.2f} (as of {latest_date.strftime('%Y-%m-%d')})")
-
-        print("-" * 60)
-        print(f"✓ Data update completed successfully at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        return 0
+        if failed:
+            logger.warning(
+                "Data update finished with %d failures: %s",
+                len(failed), ", ".join(failed),
+            )
+        else:
+            logger.info("Data update completed successfully")
+        return 1 if failed else 0
 
     except ValueError as e:
-        print(f"\n✗ Error: {e}", file=sys.stderr)
-        print("\nPlease ensure your FRED API key is set in the .env file.")
-        print("Get your free API key at: https://fred.stlouisfed.org/docs/api/api_key.html")
+        logger.error("Configuration error: %s", e)
+        logger.error("Please ensure your FRED API key is set in the .env file.")
         return 1
 
-    except Exception as e:
-        print(f"\n✗ Unexpected error: {e}", file=sys.stderr)
+    except Exception:
+        logger.exception("Unexpected error during data update")
         return 1
 
 
